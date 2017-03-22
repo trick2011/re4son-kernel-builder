@@ -30,11 +30,10 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # SET THIS:
-KERNEL_BUILDER_DIR="/opt/kernel-builder"
-VERSION="4.4.33"
-
-V1_VERSION="7"
-V2_VERSION="7"
+KERNEL_BUILDER_DIR="/opt/re4son-kernel-builder"
+VERSION="4.4.50"
+V1_VERSION="3"
+V2_VERSION="3"
 
 REPO_ROOT="/opt/kernel-builder_repos/"
 MOD_DIR=`mktemp -d`
@@ -42,12 +41,14 @@ PKG_TMP=`mktemp -d`
 TOOLS_DIR="/opt/kernel-builder_tools"
 FIRMWARE_DIR="/opt/kernel-builder_firmware"
 DEBIAN_DIR="/opt/kernel-builder_firmware"
+KERN_MOD_DIR="/opt/kernel-builder_mod"  ## Target directory for pi2/3 modules that can be used for compiling drivers
+NEXMON_DIR="/opt/re4son-nexmon"
 
 NUM_CPUS=`nproc`
 GIT_REPO="Re4son/re4son-raspberrypi-linux"
 V1_DIR="${REPO_ROOT}${GIT_REPO}/v1"
 V2_DIR="${REPO_ROOT}${GIT_REPO}/v2"
-GIT_BRANCH="rpi-4.4.y-re4son"
+GIT_BRANCH="rpi-4.4.y-re4son-0w"
 ## GIT_BRANCH="rpi-4.4.y"
 
 V1_DEFAULT_CONFIG="arch/arm/configs/re4son_pi1_defconfig"
@@ -259,13 +260,27 @@ cd $PKG_DIR
 dch -v ${NEW_VERSION} --package raspberrypi-firmware 'Adds re4son kali-pi-tft kernel'
 debuild --no-lintian -ePATH=${PATH}:${TOOLS_DIR}/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin -b -aarmhf -us -uc
 
+## Compiling nexmon firmware patches for Raspberry Pi 3
+cp -r ${MOD_DIR}/lib/modules/*-v7_*/* ${KERN_MOD_DIR}/
+cd ${NEXMON_DIR}
+source setup_env.sh
+cd patches/bcm43438/7_45_41_26/nexmon
+make
+
+
 cd $PKG_TMP
 mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}
 mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}/docs
 mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}/dts
 mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}/tools
+mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}/firmware
+mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}/repo
+mkdir re4son_kali-pi-tft_kernel_${NEW_VERSION}/nexmon
 cp *.deb re4son_kali-pi-tft_kernel_${NEW_VERSION}
 ## rm -f re4son_kali-pi-tft_kernel_${NEW_VERSION}/raspberrypi-kernel-headers*
+cp ${NEXMON_DIR}/patches/bcm43438/7_45_41_26/nexmon/brcmfmac43430-sdio.bin re4son_kali-pi-tft_kernel_${NEW_VERSION}/nexmon
+cp ${NEXMON_DIR}/patches/bcm43438/7_45_41_26/nexmon/brcmfmac/brcmfmac.ko re4son_kali-pi-tft_kernel_${NEW_VERSION}/nexmon
+cp $KERNEL_BUILDER_DIR/nexmon/* re4son_kali-pi-tft_kernel_${NEW_VERSION}/nexmon
 cp $KERNEL_BUILDER_DIR/install.sh re4son_kali-pi-tft_kernel_${NEW_VERSION}
 cp $KERNEL_BUILDER_DIR/dts/*.dts re4son_kali-pi-tft_kernel_${NEW_VERSION}/dts
 cp $KERNEL_BUILDER_DIR/docs/INSTALL re4son_kali-pi-tft_kernel_${NEW_VERSION}
@@ -273,6 +288,8 @@ cp $KERNEL_BUILDER_DIR/docs/* re4son_kali-pi-tft_kernel_${NEW_VERSION}/docs
 cp $KERNEL_BUILDER_DIR/Re4son-Pi-TFT-Setup/re4son-pi-tft-setup re4son_kali-pi-tft_kernel_${NEW_VERSION}
 cp $KERNEL_BUILDER_DIR/Re4son-Pi-TFT-Setup/adafruit-pitft-touch-cal re4son_kali-pi-tft_kernel_${NEW_VERSION}/tools
 cp $KERNEL_BUILDER_DIR/tools/* re4son_kali-pi-tft_kernel_${NEW_VERSION}/tools
+cp $KERNEL_BUILDER_DIR/firmware/* re4son_kali-pi-tft_kernel_${NEW_VERSION}/firmware
+cp $KERNEL_BUILDER_DIR/repo/* re4son_kali-pi-tft_kernel_${NEW_VERSION}/repo
 chmod +x re4son_kali-pi-tft_kernel_${NEW_VERSION}/install.sh
 chmod +x re4son_kali-pi-tft_kernel_${NEW_VERSION}/re4son-pi-tft-setup
 chmod +x re4son_kali-pi-tft_kernel_${NEW_VERSION}/tools/adafruit-pitft-touch-cal
