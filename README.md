@@ -11,7 +11,7 @@
 Clone the git repo to /opt/kernel-builder
 
 ```
-$ sudo git clone https://github.com/Re4son/re4son-kernel-builder.git /opt/kernel-builder
+$ sudo git clone https://github.com/Re4son/re4son-kernel-builder.git /opt/re4son-kernel-builder
 $ cd kernel-builder
 ```
 
@@ -24,7 +24,7 @@ $ sudo apt-get install lib32z1 lib32ncurses5 libc6-i386 lib32stdc++6
 Setup the kernel-builder
 
 ```
-$ ./setup.sh
+$ sudo ./setup.sh
 ```
 edit build.sh and set the variable KERNEL-BUILDER_DIR= to the kernel builder directory.
 default is "/opt/kernel-builder"
